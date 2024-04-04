@@ -9,9 +9,12 @@ import android.view.ViewOutlineProvider
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.weatherappkotlin.R
+import com.android.weatherappkotlin.adapter.ForecastAdapter
 import com.android.weatherappkotlin.databinding.ActivityMainBinding
 import com.android.weatherappkotlin.model.CurrentResponseApi
+import com.android.weatherappkotlin.model.ForecastResponseApi
 import com.android.weatherappkotlin.viewmodel.WeatherViewModel
 import com.github.matteobattilana.weather.PrecipType
 import eightbitlab.com.blurview.RenderScriptBlur
@@ -24,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     private val weatherViewModel: WeatherViewModel by viewModels()
     private val calendar by lazy { Calendar.getInstance() }
+    private val forecastAdapter by lazy { ForecastAdapter() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +98,35 @@ class MainActivity : AppCompatActivity() {
                 blueView.clipToOutline = true
             }
 
+            // Forecast temp
+            weatherViewModel.loadForecastWeather(lat, lon, "metric")
+                .enqueue(object : Callback<ForecastResponseApi> {
+                    override fun onResponse(
+                        call: Call<ForecastResponseApi>,
+                        response: Response<ForecastResponseApi>
+                    ) {
+                        if (response.isSuccessful) {
+                            val data = response.body()
+                            blueView.visibility = View.VISIBLE
 
+                            data?.let {
+                                forecastAdapter.differ.submitList(it.list)
+                                forecastView.apply {
+                                    layoutManager = LinearLayoutManager(
+                                        this@MainActivity,
+                                        LinearLayoutManager.HORIZONTAL,
+                                        false
+                                    )
+                                    adapter = forecastAdapter
+                                }
+                            }
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ForecastResponseApi>, t: Throwable) {
+                        TODO("Not yet implemented")
+                    }
+                })
         }
     }
 
