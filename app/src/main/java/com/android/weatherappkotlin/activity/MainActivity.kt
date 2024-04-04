@@ -4,6 +4,8 @@ import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -12,6 +14,7 @@ import com.android.weatherappkotlin.databinding.ActivityMainBinding
 import com.android.weatherappkotlin.model.CurrentResponseApi
 import com.android.weatherappkotlin.viewmodel.WeatherViewModel
 import com.github.matteobattilana.weather.PrecipType
+import eightbitlab.com.blurview.RenderScriptBlur
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -37,6 +40,7 @@ class MainActivity : AppCompatActivity() {
             var lon = -0.12
             var name = "London"
 
+            // Current Temp
             cityTxt.text = name
             progressBar.visibility = View.VISIBLE
             weatherViewModel.loadCurrentWeather(lat, lon, "metric").enqueue(object :
@@ -75,6 +79,22 @@ class MainActivity : AppCompatActivity() {
                 }
 
             })
+
+            //Settings Blue View
+            var radius = 10f
+            val decorView = window.decorView
+            val rootView = (decorView.findViewById(android.R.id.content) as ViewGroup?)
+            val windowBackground = decorView.background
+
+            rootView?.let {
+                blueView.setupWith(it, RenderScriptBlur(this@MainActivity))
+                    .setFrameClearDrawable(windowBackground)
+                    .setBlurRadius(radius)
+                blueView.outlineProvider = ViewOutlineProvider.BACKGROUND
+                blueView.clipToOutline = true
+            }
+
+
         }
     }
 
